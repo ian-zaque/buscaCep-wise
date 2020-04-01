@@ -7,8 +7,10 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">    <!--CDN BOOTSTRAP.CSS-->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>     <!--CDN BOOTSTRAP.JS-->
-    <script src="https://kit.fontawesome.com/011fde3672.js" crossorigin="anonymous"></script>       <!--CDN FONT-AWESOME-->
-</head>
+    <script src="https://kit.fontawesome.com/011fde3672.js" crossorigin="anonymous"></script>       <!--CDN FONT-AWESOME-->  
+    <script src="https://unpkg.com/vue"></script>                           <!--CDN VUE.JS-->  
+    <script src="https://unpkg.com/imask"></script>                               <!--CDN Mascara dos inputs-->  
+</head> 
 
 <body>
     <div class="bg-white">
@@ -18,18 +20,24 @@
             </a>
         </nav>
 
-        <div class="container p-4">
+        <div class="container p-4" onmouseclick="mascara();">
             <div class="jumbotron jumbotron-fluid" style="padding: 5px 5px 5px 5px">  
                 <p class="h3 display-4 ml-2 mb-3 pad">Seja bem vindo(a) ao <strong>BuscaCEP</strong></p>
                     <div class="container-fluid" id="idContainer">
-                        <hr>
+                    <hr>
+                        <form>
                         <div class="container form-row">
                             <p class="h4">Insira o CEP desejado e os dados do logradouro irão aparecer nos campos respectivos</p>
                                 <div class="form-group col-10">
                                     <div class="form-row">
-                                        <label for="idCep">CEP</label>
-                                        <input id="idCep" type="numeric" v-model:value="cep" minlength="9" maxlength="9" class="form-control col-3 val" placeholder="99999-999">
-                                        <button type="button" onclick="checaCep();" class="btn btn-primary" style="margin-left: 5px;"> <i class="fa fa-search form-row" aria-hidden="false"></i></button>
+                                        <div class="col">
+                                            <label for="idCep">CEP</label>
+                                            <input id="idCep" onclick="mascara();" type="numeric" class="form-control col-4 val" v-model:value="cep" minlength="9" 
+                                                    maxlength="9" placeholder="99999-999">
+                                            <button type="button" onclick="checaCep();" class="btn btn-primary" style="margin-left: 5px;"> 
+                                                    <i class="fa fa-search" aria-hidden="false"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                         </div>
@@ -40,11 +48,11 @@
                                         <div class="form-row">
                                             <div class="col">
                                                 <label for="idLogra">Logradouro</label>
-                                                <input id="idLogra" v-model:value="logradouro" class="form-control col-9 desativado" placeholder="Logradouro" disabled>
+                                                <input id="idLogra" v-model:value="logradouro" class="form-control col-10 desativado" placeholder="Logradouro" disabled>
                                             </div>
                                             <div class="col">
                                                 <label for="idComp">Complemento</label>
-                                                <input id="idComp" v-model:value="comp" class="form-control col-7 desativado" placeholder="Complemento" disabled>
+                                                <input id="idComp" v-model:value="comp" class="form-control col-8 desativado" placeholder="Complemento" disabled>
                                             </div>
                                         </div>
                                     </div>
@@ -64,7 +72,7 @@
                                         <div class="form-row">
                                             <div class="col">
                                                 <label for="idEstado">Estado</label>
-                                                <input id="idEstado" v-model:value="estado" class="form-control col-4 desativado" placeholder="Estado - UF" disabled>
+                                                <input id="idEstado" v-model:value="estado" class="form-control col-2 desativado" placeholder="Estado - UF" disabled>
                                             </div>
                                         </div>
                                     </div>
@@ -72,7 +80,8 @@
                                         <div class="float-right">
                                             <button type="reset" class="btn btn-secondary">Limpar</button>
                                         </div>
-                                    </div>                           
+                                    </div>
+                        </form>                                                
                     </div>                    
             </div>      <!--FIM JUMBOTRON-->
         </div>
@@ -86,8 +95,6 @@
 </html>
 
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-<script src="https://unpkg.com/imask"></script>
-<script src="https://unpkg.com/vue"></script>
 <script>
 $(".val").on("input", function() {      //Permite input com numeros e hífen "-"
     var regexp = /[^0-9-.]/g;
@@ -96,17 +103,18 @@ $(".val").on("input", function() {      //Permite input com numeros e hífen "-"
     }
 });
 
+function mascara(){
     var cep = document.getElementById('idCep');     //Pega elemento do CEP
     var mascaraPadrao = { mask: '00000-000'};       //Padrao da mascara aplicada
     var mascara = IMask(cep, mascaraPadrao);        //Aplica mascara
+}
 
 function checaCep(){
     let cep = document.getElementById('idCep').value;
     console.log(cep);
-    if(cep != ""){
+    if(cep != "" && cep.indexOf('-')!=-1){
         cep=cep.replace('-','');
         requisitaXml(cep,'http://viacep.com.br/ws/');
-        
     }
 }
 
@@ -115,19 +123,24 @@ function requisitaXml(cep,link){
     let xml = new XMLHttpRequest(); 
     xml.open('GET',link,true);
     xml.onreadystatechange = function(){
-        if(xml.readyState==4 && xml.status==200) {
+        if(xml.statusText=='400'){
+            return alertaErro();
+        }
+        if(xml.readyState==4 && xml.status==200) {          //SE for XMLRequest obteve sucesso
             console.log(xml.responseText);
-            let dados = JSON.parse(xml.responseText);
+            let dados = JSON.parse(xml.responseText);       //Converte em Object
             console.log(dados);
-            
-            dadosCep(dados);
+            dadosCep(dados);                                    //Joga no Vue
         }
     }
     xml.send();
 }
 
 function dadosCep(json){
-    let array = new Vue ({
+    if(json.erro==true){
+        return alertaErro();
+    }
+    new Vue ({
             el: '#idContainer',
             data:{
                 cep: json.cep,
@@ -135,9 +148,13 @@ function dadosCep(json){
                 comp: json.complemento,
                 local: json.localidade,
                 bairro:json.bairro,
-                estado: json.uf,
+                estado: json.uf
             }
         });
+}
+
+function alertaErro(){
+    alert("CEP Inválido!!! Insira um CEP existente");
 }
 
 </script>
