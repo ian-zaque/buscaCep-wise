@@ -15,14 +15,14 @@
 <body>
     <div class="bg-white">
         <nav class="navbar navbar-expand-lg navbar-light bg-primary ">
-            <a class="navbar-brand text-white">
+            <a href="index.html" class="navbar-brand text-white">
                 <i class="fas fa-search-location fa-lg">  BuscaCEP</i>
             </a>
         </nav>
 
         <div class="container p-4" onmouseclick="mascara();">
             <div class="jumbotron jumbotron-fluid" style="padding: 5px 5px 5px 5px">  
-                <p class="h3 display-4 ml-2 mb-3 pad">Seja bem vindo(a) ao <strong>BuscaCEP</strong></p>
+                <p class="h3 display-4 ml-2 mb-3 pad">Seja bem vindo(a) ao <strong>BuscaCEP</strong>!</p>
                     <div class="container-fluid" id="idContainer">
                     <hr>
                         <form>
@@ -30,14 +30,11 @@
                             <p class="h4">Insira o CEP desejado e os dados do logradouro irão aparecer nos campos respectivos</p>
                                 <div class="form-group col-10">
                                     <div class="form-row">
-                                        <div class="col">
-                                            <label for="idCep">CEP</label>
-                                            <input id="idCep" onclick="mascara();" type="numeric" class="form-control col-4 val" v-model:value="cep" minlength="9" 
-                                                    maxlength="9" placeholder="99999-999">
-                                            <button type="button" onclick="checaCep();" class="btn btn-primary" style="margin-left: 5px;"> 
-                                                    <i class="fa fa-search" aria-hidden="false"></i>
-                                            </button>
-                                        </div>
+                                        <input id="idCep" onclick="mascara();" type="numeric" class="form-control col-4 val" v-model:value="cep"
+                                                minlength="9" maxlength="9" placeholder="99999-999">
+                                        <button type="button" onclick="checaCep();" class="btn btn-primary" style="margin-left: 5px;"> 
+                                                <i class="fa fa-search" aria-hidden="false"></i>
+                                        </button>
                                     </div>
                                 </div>
                         </div>
@@ -111,8 +108,13 @@ function mascara(){
 
 function checaCep(){
     let cep = document.getElementById('idCep').value;
-    console.log(cep);
-    if(cep != "" && cep.indexOf('-')!=-1){
+    //console.log(cep);
+
+    if(cep.length < 9 || cep.length > 9){
+        return alertaErro();
+    }
+
+    if(cep != "" && cep.indexOf('-')!=-1 && cep.length == 9){
         cep=cep.replace('-','');
         requisitaXml(cep,'http://viacep.com.br/ws/');
     }
@@ -123,13 +125,10 @@ function requisitaXml(cep,link){
     let xml = new XMLHttpRequest(); 
     xml.open('GET',link,true);
     xml.onreadystatechange = function(){
-        if(xml.statusText=='400'){
-            return alertaErro();
-        }
-        if(xml.readyState==4 && xml.status==200) {          //SE for XMLRequest obteve sucesso
-            console.log(xml.responseText);
+        if(xml.readyState==4 && xml.status==200) {          //Se XMLRequest obteve sucesso
+            //console.log(xml.responseText);
             let dados = JSON.parse(xml.responseText);       //Converte em Object
-            console.log(dados);
+            //console.log(dados);
             dadosCep(dados);                                    //Joga no Vue
         }
     }
