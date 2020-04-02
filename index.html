@@ -23,16 +23,16 @@
         <div class="container p-4" onmouseclick="mascara();">
             <div class="jumbotron jumbotron-fluid" style="padding: 5px 5px 5px 5px">  
                 <p class="h3 display-4 ml-2 mb-3 pad">Seja bem vindo(a) ao <strong>BuscaCEP</strong>!</p>
-                    <div class="container-fluid" id="idContainer">
+                    <div class="container-fluid">
                     <hr>
-                        <form>
+                        <form id="idForm">
                         <div class="container form-row">
                             <p class="h4">Insira o CEP desejado e os dados do logradouro irão aparecer nos campos respectivos</p>
                                 <div class="form-group col-10">
                                     <div class="form-row">
                                         <input id="idCep" onclick="mascara();" type="numeric" class="form-control col-4 val" v-model:value="cep"
-                                                minlength="9" maxlength="9" placeholder="99999-999">
-                                        <button type="button" onclick="checaCep();" class="btn btn-primary" style="margin-left: 5px;"> 
+                                                minlength="9" maxlength="9" placeholder="00000-000">
+                                        <button type="button" id="btnBusca" onclick="checaCep();" class="btn btn-primary" style="margin-left: 5px;"> 
                                                 <i class="fa fa-search" aria-hidden="false"></i>
                                         </button>
                                     </div>
@@ -75,11 +75,11 @@
                                     </div>
                                     <div class="form-group col-10">
                                         <div class="float-right">
-                                            <button type="reset" class="btn btn-secondary">Limpar</button>
+                                            <button type="reset" onclick="location.href='index.html';" id="btnReset" class="btn btn-secondary">Limpar</button>
                                         </div>
                                     </div>
                         </form>                                                
-                    </div>                    
+                    </div>
             </div>      <!--FIM JUMBOTRON-->
         </div>
     </div>
@@ -92,6 +92,7 @@
 </html>
 
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 <script>
 $(".val").on("input", function() {      //Permite input com numeros e hífen "-"
     var regexp = /[^0-9-.]/g;
@@ -101,16 +102,16 @@ $(".val").on("input", function() {      //Permite input com numeros e hífen "-"
 });
 
 function mascara(){
-    var cep = document.getElementById('idCep');     //Pega elemento do CEP
-    var mascaraPadrao = { mask: '00000-000'};       //Padrao da mascara aplicada
-    var mascara = IMask(cep, mascaraPadrao);        //Aplica mascara
+    let cep = document.getElementById('idCep');     //Pega elemento do CEP
+    let mascaraPadrao = { mask: '00000-000'};       //Padrao da mascara aplicada
+    let mascara = IMask(cep, mascaraPadrao);        //Aplica mascara
 }
 
 function checaCep(){
     let cep = document.getElementById('idCep').value;
     //console.log(cep);
 
-    if(cep.length < 9 || cep.length > 9){
+    if(cep.length < 9 || cep.length > 9 || cep==""){
         return alertaErro();
     }
 
@@ -124,6 +125,7 @@ function requisitaXml(cep,link){
     link = link + cep +'/json';
     let xml = new XMLHttpRequest(); 
     xml.open('GET',link,true);
+        $("#btnBusca").hide();                      //Esconde botao. Força usuario a limpar dados antes de buscar novamente
     xml.onreadystatechange = function(){
         if(xml.readyState==4 && xml.status==200) {          //Se XMLRequest obteve sucesso
             //console.log(xml.responseText);
@@ -140,7 +142,7 @@ function dadosCep(json){
         return alertaErro();
     }
     new Vue ({
-            el: '#idContainer',
+            el: '#idForm',
             data:{
                 cep: json.cep,
                 logradouro: json.logradouro,
@@ -155,7 +157,6 @@ function dadosCep(json){
 function alertaErro(){
     alert("CEP Inválido!!! Insira um CEP existente");
 }
-
 </script>
 
 <style>
